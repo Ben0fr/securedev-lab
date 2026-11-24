@@ -26,11 +26,8 @@ echo ">> Sesion obtenida (${#SESSION} caracteres)"
 
 ZAP_OPTS="-config replacer.full_list\\(0\\).description=auth-cookie -config replacer.full_list\\(0\\).enabled=true -config replacer.full_list\\(0\\).matchtype=REQ_HEADER -config replacer.full_list\\(0\\).matchstr=Cookie -config replacer.full_list\\(0\\).regex=false -config replacer.full_list\\(0\\).replacement=session=$SESSION -config globalexcludeurl.url_list.url\\(0\\).regex=.*/logout.* -config globalexcludeurl.url_list.url\\(0\\).enabled=true"
 
-CID=$(docker create --user root --network "$NETWORK" zaproxy/zap-stable zap-full-scan.py -t "$TARGET" -m 2 -T 10 -I -r zap-report.html -J zap-report.json -w zap-report.md -z "$ZAP_OPTS")
 echo ">> Ejecutando ZAP (puede tardar varios minutos)"
-docker start -a "$CID" | tee reports/zap/zap-console.log
-docker cp "$CID":/zap/wrk/. reports/zap/
-docker rm -f "$CID" > /dev/null
+docker run --rm --user root --network "$NETWORK" -v "$PWD/reports/zap:/zap/wrk:rw" zaproxy/zap-stable zap-full-scan.py -t "$TARGET" -m 2 -T 10 -I -r zap-report.html -J zap-report.json -w zap-report.md -z "$ZAP_OPTS" | tee reports/zap/zap-console.log
 
 if [ ! -f reports/zap/zap-report.json ]; then echo "No se genero el reporte"; exit 3; fi
 HIGH=$(grep -Eo '"riskcode" *: *"3"' reports/zap/zap-report.json | wc -l)
