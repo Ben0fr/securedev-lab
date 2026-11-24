@@ -1,0 +1,19 @@
+groups:
+  - name: securedev-seguridad
+    rules:
+      - alert: PosibleFuerzaBrutaLogin
+        expr: increase(securedev_login_failures_total[5m]) > 4
+        labels: {severity: warning}
+        annotations:
+          summary: "Mas de 4 logins fallidos en 5 minutos"
+      - alert: ErroresServidor5xx
+        expr: sum(increase(securedev_http_requests_total{status=~"5.."}[5m])) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: "La aplicacion devolvio errores 5xx (posible entrada maliciosa)"
+      - alert: AplicacionCaida
+        expr: up{job="securedev-app"} == 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "Prometheus no puede leer la aplicacion"
