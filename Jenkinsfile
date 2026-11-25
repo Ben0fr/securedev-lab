@@ -5,7 +5,7 @@ pipeline {
       steps { sh 'docker compose -p securedev-estudiante build' }
     }
     stage('Pruebas') {
-      steps { sh 'echo "Pruebas pendientes"' }
+      steps { sh 'docker run --rm -v "$PWD:/src" -w /src python:3.11-slim-bookworm sh -c "pip install -q pip-audit && pip-audit -r requirements.txt"' }
     }
     stage('Despliegue') {
       steps { sh 'docker compose -p securedev-estudiante up -d --build' }
@@ -47,3 +47,4 @@ exit 0
     always { archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true }
   }
 }
+
